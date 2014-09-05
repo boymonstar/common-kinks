@@ -30,17 +30,17 @@ friends = friend_finder.for_user(config["testuser"])
 
 puts friends
 #friend_intersections = friends.map do |friend|
-  friend = friends[1]
-puts friend
+friend = friends[1]
 
-  intersection = finder.in_common(config["testuser"], friend[:id])
-  puts friend[:name]
-  puts intersection.map {|fetish| fetish[0]}
-  puts "-"*10
-  {
-    name: friend[0],
-    intersection: intersection
-  }
+intersection = finder.in_common(config["testuser"], friend[:id])
+puts "-"*10
+puts friend[:name]
+puts intersection.map { |fetish| fetish[0] }
+puts "-"*10
+{
+  name: friend[0],
+  intersection: intersection
+}
 #end
 
 
