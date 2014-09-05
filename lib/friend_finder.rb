@@ -6,7 +6,22 @@ class FriendFinder
   def for_user(user_id)
     # for all pages, get the user's friends
     first_friends_page = @mechanize.get("https://fetlife.com/users/#{user_id}/friends")
-    links = first_friends_page.links_with(href: %r{/users/\d+})
+
+    lpn = last_page_number(first_friends_page)
+    friends_by_page = (1..lpn).map do |page_number|
+      friend_links_on_page(user_id, page_number)
+    end
+
+    friends_by_page.flatten
+  end
+
+  private
+
+  def friend_links_on_page(user_id, page_number)
+    puts "Getting page #{page_number}"
+    page = @mechanize.get("https://fetlife.com/users/#{user_id}/friends?page=#{page_number}")
+
+    links = page.links_with(href: %r{/users/\d+})
 
     link_hashes = links.map do |link|
       {
@@ -19,7 +34,10 @@ class FriendFinder
     filter_to_friend_links(link_hashes, user_id)
   end
 
-  private
+  def last_page_number(page)
+    page_links = page.links_with(href: %r{/friends\?page=})
+    page_links[-2].text.to_i
+  end
 
   def filter_to_friend_links(link_hashes, user_id)
     hashes = link_hashes.uniq!
