@@ -13,7 +13,7 @@ config = YAML.load_file('config/credentials.yml')
 
 def authenticated_mechanize(config)
   mechanize = Mechanize.new
-  page = @mechanize.get('https://fetlife.com/login')
+  page = mechanize.get('https://fetlife.com/login')
   login_form = page.forms.first
   login_form['nickname_or_email'] = config['username']
   login_form['password'] = config['password']
@@ -28,16 +28,20 @@ friend_finder = FriendFinder.new(mechanize_session)
 
 friends = friend_finder.for_user(config["testuser"])
 
-friend_intersections = friends.map do |friend|
-  intersection = finder.in_common(config["testuser"], friend[1])
-  puts friend[0]
-  puts intersection.map {|f|f[0]}
+puts friends
+#friend_intersections = friends.map do |friend|
+  friend = friends[1]
+puts friend
+
+  intersection = finder.in_common(config["testuser"], friend[:id])
+  puts friend[:name]
+  puts intersection.map {|fetish| fetish[0]}
   puts "-"*10
   {
     name: friend[0],
     intersection: intersection
   }
-end
+#end
 
 
 # Find all the friends of the user
