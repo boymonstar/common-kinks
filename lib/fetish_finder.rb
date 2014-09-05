@@ -6,17 +6,16 @@ class FetishFinder
   end
 
   def in_common(user_a, user_b)
-    res  = fetish_intersection(user_a, user_b)
-    puts requests_made: @requests_made
-    res
+    fetish_intersection(user_a, user_b)
+  end
+
+  def page_for_user(id)
+    @requests_made = @requests_made + 1
+    Profile.find(id, @mechanize)
   end
 
   private
 
-  def page_for_user(id)
-    @requests_made = @requests_made + 1
-    @mechanize.get("https://fetlife.com/users/#{id}")
-  end
 
   def fetishes_links_for_user(user_id)
     return @fetish_links_cache[user_id] if @fetish_links_cache[user_id]
@@ -26,7 +25,7 @@ class FetishFinder
 
   def fetishes_for_user(id)
     user_1_fetishes = fetishes_links_for_user(id)
-    user_1_fetishes.map { |f| [f.text, f.href] }
+    user_1_fetishes.map { |f| {name: f.text, link: f.href} }
   end
 
   def fetish_intersection(user_a, user_b)

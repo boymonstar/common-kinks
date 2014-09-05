@@ -6,43 +6,35 @@ require 'yaml'
 require 'mechanize'
 
 $:.unshift 'lib'
-require 'fetish_finder'
-require 'friend_finder'
+require 'common_kinks'
+
+print "What's your user ID? (look in the URL on your page): "
+$stdout.flush
+
+user_to_check = gets
+
+print "Which friend would you find? Enter their ID. Enter \"All\" for all friends: "
+$stdout.flush
+
+friend_to_check = gets.chomp
+
+if friend_to_check == "All"
+  puts "OK! We're looking up all of your friends."
+  puts "This might take a while..."
+else
+  puts "OK! We're looking up #{friend_to_check}. This will take just a second."
+end
 
 config = YAML.load_file('config/credentials.yml')
 
-def authenticated_mechanize(config)
-  mechanize = Mechanize.new
-  page = mechanize.get('https://fetlife.com/login')
-  login_form = page.forms.first
-  login_form['nickname_or_email'] = config['username']
-  login_form['password'] = config['password']
-  login_form.submit
-  mechanize
+common_kinks = CommonKinks.for_user(config, user_to_check, friend_to_check)
+
+puts " "
+common_kinks.each do |friend_intersection|
+  puts "-"*10
+  puts friend_intersection[:name]
+  puts friend_intersection[:intersection].map { |fetish| fetish[:name] }
+  puts "-"*10
 end
 
-mechanize_session = authenticated_mechanize(config)
-
-finder = FetishFinder.new(mechanize_session)
-friend_finder = FriendFinder.new(mechanize_session)
-
-friends = friend_finder.for_user(config["testuser"])
-
-friend_fetish_intersections = friends.map do |friend|
-  intersection = finder.in_common(config["testuser"], friend[:id])
-  puts "-"*10
-  puts friend[:name]
-  puts intersection.map { |fetish| fetish[0] }
-  puts "-"*10
-  {
-    name: friend[0],
-    intersection: intersection
-  }
-end
-
-
-# Cache users' fetishes to not spam the original user's page
-
-#puts intersection.map { |f| f[0] }
-#binding.pry
 
