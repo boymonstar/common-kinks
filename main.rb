@@ -7,36 +7,51 @@ require 'mechanize'
 
 config = YAML.load_file('config/credentials.yml')
 
-mechanize = Mechanize.new
+class FetishFinder
+  def initialize(config)
+    @config = config
+    @mechanize = Mechanize.new
+  end
 
-page = mechanize.get('https://fetlife.com/login')
+  def in_common(user_a, user_b)
+    authenticate!
+    fetish_intersection(user_a, user_b)
+  end
 
-login_form = page.forms.first
-login_form['nickname_or_email'] = config['username']
-login_form['password'] = config['password']
-login_form.submit
+  private
 
-def page_for_user(id, mechanize)
-  mechanize.get("https://fetlife.com/users/#{id}")
+  def authenticate!
+    page = @mechanize.get('https://fetlife.com/login')
+    login_form = page.forms.first
+    login_form['nickname_or_email'] = @config['username']
+    login_form['password'] = @config['password']
+    login_form.submit
+  end
+
+  def page_for_user(id)
+    @mechanize.get("https://fetlife.com/users/#{id}")
+  end
+
+  def fetishes_links_for_user(id)
+    page = page_for_user(id)
+    page.links_with(:href => %r{/fetishes/\d+})
+  end
+
+  def fetishes_for_user(id)
+    user_1_fetishes = fetishes_links_for_user(id)
+    user_1_fetishes.map { |f| [f.text, f.href] }
+  end
+
+  def fetish_intersection(user_a, user_b)
+    user_1_fetishes = fetishes_for_user(user_a)
+    user_2_fetishes = fetishes_for_user(user_b)
+    user_1_fetishes & user_2_fetishes
+  end
 end
 
-def fetishes_links_for_user(id, mechanize)
-  page = page_for_user(id, mechanize)
-  page.links_with(:href => %r{/fetishes/\d+})
-end
-
-def fetishes_for_user(id, mechanize)
-  user_1_fetishes = fetishes_links_for_user(id, mechanize)
-  user_1_fetishes.map { |f| [f.text, f.href] }
-end
-
-puts config["testuser"]
-puts config["testfriend"]
-
-user_1_fetishes = fetishes_for_user(config["testuser"], mechanize)
-user_2_fetishes = fetishes_for_user(config["testfriend"], mechanize)
-intersection = user_1_fetishes & user_2_fetishes
+finder = FetishFinder.new(config)
+intersection = finder.in_common(config["testuser"], config["testfriend"])
 
 puts intersection.map { |f| f[0] }
-binding.pry
+#binding.pry
 
