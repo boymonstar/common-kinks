@@ -7,12 +7,14 @@ require 'mechanize'
 
 $:.unshift 'lib'
 require 'fetish_finder'
+require 'friend_finder'
 
 config = YAML.load_file('config/credentials.yml')
 
 finder = FetishFinder.new(config)
 
-friends = finder.users_friends(config["testuser"])
+friend_finder = FriendFinder.new(config)
+friends = friend_finder.for_user(config["testuser"])
 
 friend_intersections = friends.map do |friend|
   intersection = finder.in_common(config["testuser"], friend[1])
