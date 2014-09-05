@@ -6,30 +6,34 @@ class FriendFinder
   def for_user(user_id)
     # for all pages, get the user's friends
     first_friends_page = @mechanize.get("https://fetlife.com/users/#{user_id}/friends")
-    friend_links = first_friends_page.links_with(href: %r{/users/\d+})
+    links = first_friends_page.links_with(href: %r{/users/\d+})
 
-
-    friends = friend_links.map do |link|
+    link_hashes = links.map do |link|
       {
         name: link.text,
         href: link.href,
         id: link.href.match(%r{/users/(\d+)})[1]
       }
     end
-    uniq_friends = friends.uniq!
 
-    uniq_friends = uniq_friends.reject do |friend|
+    filter_to_friend_links(link_hashes, user_id)
+  end
+
+  private
+
+  def filter_to_friend_links(link_hashes, user_id)
+    hashes = link_hashes.uniq!
+
+    hashes.reject do |hash|
       # reject when: not a user link
       # or
       # is authenticated user
       # or
       # is current user
-      !friend[:href].match(%r{/users/\d+$}) ||
-        friend[:name].match(%r{View Your Profile}) ||
-        friend[:href].match(%r{/users/#{user_id}})
+      !hash[:href].match(%r{/users/\d+$}) ||
+        hash[:name].match(%r{View Your Profile}) ||
+        hash[:href].match(%r{/users/#{user_id}})
     end
-
-    uniq_friends
   end
 
 end
