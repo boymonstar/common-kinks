@@ -18,7 +18,6 @@ class FriendFinder
   private
 
   def friend_links_on_page(user_id, page_number)
-    puts "Getting page #{page_number}"
     page = @mechanize.get("https://fetlife.com/users/#{user_id}/friends?page=#{page_number}")
 
     links = page.links_with(href: %r{/users/\d+})
