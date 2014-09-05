@@ -1,23 +1,13 @@
 class FetishFinder
-  def initialize(config)
-    @config = config
-    @mechanize = Mechanize.new
+  def initialize(mechanize_session)
+    @mechanize = mechanize_session
   end
 
   def in_common(user_a, user_b)
-    authenticate!
     fetish_intersection(user_a, user_b)
   end
 
   private
-
-  def authenticate!
-    page = @mechanize.get('https://fetlife.com/login')
-    login_form = page.forms.first
-    login_form['nickname_or_email'] = @config['username']
-    login_form['password'] = @config['password']
-    login_form.submit
-  end
 
   def page_for_user(id)
     @mechanize.get("https://fetlife.com/users/#{id}")

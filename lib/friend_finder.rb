@@ -1,12 +1,10 @@
 class FriendFinder
-  def initialize(config)
-    @config = config
-    @mechanize = Mechanize.new
+  def initialize(authenticated_mechanize)
+    @mechanize = authenticated_mechanize
   end
 
   def for_user(user_id)
     # for all pages, get the user's friends
-    authenticate!
     first_friends_page = @mechanize.get("https://fetlife.com/users/#{user_id}/friends")
     friend_links = first_friends_page.links_with(href: %r{/users/\d+})
     #friend_links.map { |link| [link.text, link.href.match(/(\d+)/)[[1]]] }
@@ -32,14 +30,5 @@ class FriendFinder
     end
   end
 
-  private
-
-  def authenticate!
-    page = @mechanize.get('https://fetlife.com/login')
-    login_form = page.forms.first
-    login_form['nickname_or_email'] = @config['username']
-    login_form['password'] = @config['password']
-    login_form.submit
-  end
 
 end

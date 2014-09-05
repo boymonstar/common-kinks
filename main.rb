@@ -11,9 +11,21 @@ require 'friend_finder'
 
 config = YAML.load_file('config/credentials.yml')
 
-finder = FetishFinder.new(config)
+def authenticated_mechanize(config)
+  mechanize = Mechanize.new
+  page = @mechanize.get('https://fetlife.com/login')
+  login_form = page.forms.first
+  login_form['nickname_or_email'] = config['username']
+  login_form['password'] = config['password']
+  login_form.submit
+  mechanize
+end
 
-friend_finder = FriendFinder.new(config)
+mechanize_session = authenticated_mechanize(config)
+
+finder = FetishFinder.new(mechanize_session)
+friend_finder = FriendFinder.new(mechanize_session)
+
 friends = friend_finder.for_user(config["testuser"])
 
 friend_intersections = friends.map do |friend|
